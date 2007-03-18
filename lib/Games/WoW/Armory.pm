@@ -10,7 +10,7 @@ use XML::Simple;
 __PACKAGE__->mk_accessors(
         qw(character url reputation skill profession characterinfo members) );
 
-our $VERSION = '0.0.1';
+our $VERSION = '0.0.2';
 
 =head1 NAME
 
@@ -19,28 +19,51 @@ Games::WoW::Armory - Access to the WoW Armory
 
 =head1 VERSION
 
-version
-
+version 0.0.2
 
 =head1 SYNOPSIS
 
     use Games::WoW::Armory;
 
-  	methods
-  
-=head1 DESCRIPTION
+  	my $armory = Games::WoW::Armory->new();
+	$armory->search_character( { realm     => 'Elune',
+                                 character => 'Aarnn',
+                                 country   => 'EU } );
+	print $armory->character->{name};
+	
+=head2 METHOD
 
-desc
+=head3 fetch_data
+
+Fetch the data, and store the result in $self->{data}
+
+=head3 search_character
+
+Search a character. Required params:
+
+	realm | character | country
+	realm : name of the realm
+	character : name of a character
+	country : name of the country (EU|US)
+	The character information are in $self->character (name, race, guild, etc)
+	The character reputations are in $self->reputation
+	The character skills are in $self->skill
+	More character informations are in $self->characterinfo
+
+=head3 search_guild
+
+Search for a guild. required params : 
+	
+	realm | guild | country
+	realm : name of the realm
+	guild : name of the guild
+	country : name of the country (EU|US)
+	Guild members are in $self->members
 
 =cut
 
 our $WOW_EUROPE = "http://armory.wow-europe.com/";
 our $WOW_US     = 'http://armory.worldofwarcraft.com/';
-
-=head2 fetch_data
-fetch the data for the url
-store the result in $self->{data}
-=cut
 
 sub fetch_data {
     my ( $self, $params ) = @_;
@@ -69,18 +92,6 @@ sub fetch_data {
     $self->{ data } = $self->{ xp }->XMLin( $self->{ resultat }->content );
 }
 
-=head2 search_character
-search a character
-required params : realm | character | country
-realm : name of the realm
-character : name of a character
-country : name of the country (EU|US)
-The character information are in $self->character (name, race, guild, etc)
-The character reputations are in $self->reputation
-The character skills are in $self->skill
-More character informations are in $self->characterinfo
-=cut
-
 sub search_character {
     my ( $self, $params ) = @_;
 
@@ -103,15 +114,6 @@ sub search_character {
     $self->characterinfo( $self->{ data }{ characterInfo }{ characterTab } );
 
 }
-
-=head2 search_guild
-search a guild
-required params : realm | guild | country
-realm : name of the realm
-guild : name of the guild
-country : name of the country (EU|US)
-Guild members are in $self->members
-=cut 
 
 sub search_guild {
     my ( $self, $params ) = @_;

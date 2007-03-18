@@ -1,10 +1,10 @@
 #!/usr/bin/perl -w
 
 use strict;
-use lib ( '../lib/' );
+
 use Getopt::Simple qw($switch);
 use Games::WoW::Armory;
-use Data::Dumper;
+
 my ( $options ) = {
     help => { type    => '',
               env     => '-',
@@ -22,14 +22,14 @@ my ( $options ) = {
                env     => '-',
                default => '',
                verbose => 'guild name',
-               order   => 2,
+               order   => 3,
     },
     realm => {
         type    => '=s',
         env     => '-',
         default => '',
         verbose => 'realm name',
-        order   => 2,
+        order   => 4,
 
     },
     country => {
@@ -37,7 +37,7 @@ my ( $options ) = {
         env     => '-',
         default => '',
         verbose => 'Region name (EU|US)',
-        order   => 2,
+        order   => 5,
 
     },
 };
