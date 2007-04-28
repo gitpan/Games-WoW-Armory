@@ -8,9 +8,10 @@ use LWP::UserAgent;
 use XML::Simple;
 
 __PACKAGE__->mk_accessors(
-        qw(character url reputation skill profession characterinfo members) );
+    qw(character url reputation skill profession characterinfo members heroic_access)
+);
 
-our $VERSION = '0.0.2';
+our $VERSION = '0.0.3';
 
 =head1 NAME
 
@@ -59,11 +60,24 @@ Search for a guild. required params :
 	guild : name of the guild
 	country : name of the country (EU|US)
 	Guild members are in $self->members
+	
+=head3 get_heroic_access
+
+Store in $self->heroic_access the list of keys the user can buy for the instances in heroic mode.
 
 =cut
 
 our $WOW_EUROPE = "http://armory.wow-europe.com/";
 our $WOW_US     = 'http://armory.worldofwarcraft.com/';
+
+our $HEROIC_REPUTATIONS = {
+    "Keepers of Time"     => "Key of Time",
+    "Lower City"          => "Auchenai Key",
+    "The Sha'tar"         => "Warpforged Key",
+    "Honor Hold"          => "Flamewrought Key",
+    "Thrallmar"           => "Flamewrought Key",
+    "Cenarion Expedition" => "Reservoir Key",
+};
 
 sub fetch_data {
     my ( $self, $params ) = @_;
@@ -75,16 +89,18 @@ sub fetch_data {
     my $base_url;
     if ( $$params{ country } eq "EU" ) {
         $base_url = $WOW_EUROPE;
-    } elsif ( $$params{ country } eq "US" ) {
+    }
+    elsif ( $$params{ country } eq "US" ) {
         $base_url = $WOW_US;
-    } else {
+    }
+    else {
         croak "Unknow region code, please choose US or EU";
     }
 
-    $self->url(   $base_url
-                . $$params{ xml } . "?r="
-                . $$params{ realm } . "&n="
-                . $$params{ name } );
+    $self->url( $base_url
+            . $$params{ xml } . "?r="
+            . $$params{ realm } . "&n="
+            . $$params{ name } );
 
     $self->{ resultat } = $self->{ ua }->get( $self->url );
 
@@ -103,16 +119,19 @@ sub search_character {
     croak "you need to specify a country name"
         unless defined $$params{ country };
 
-    $self->fetch_data( { xml     => $xml,
-                         realm   => $$params{ realm },
-                         name    => $$params{ character },
-                         country => $$params{ country } } );
+    $self->fetch_data(
+        {   xml     => $xml,
+            realm   => $$params{ realm },
+            name    => $$params{ character },
+            country => $$params{ country }
+        }
+    );
 
     $self->character( $self->{ data }{ characterInfo }{ character } );
     $self->reputation( $self->{ data }{ characterInfo }{ reputationTab } );
     $self->skill( $self->{ data }{ characterInfo }{ skillTab } );
     $self->characterinfo( $self->{ data }{ characterInfo }{ characterTab } );
-
+    $self->get_heroic_access();
 }
 
 sub search_guild {
@@ -125,14 +144,40 @@ sub search_guild {
     croak "you need to specify a country name"
         unless defined $$params{ country };
 
-    $self->fetch_data( { xml     => $xml,
-                         realm   => $$params{ realm },
-                         name    => $$params{ guild },
-                         country => $$params{ country } } );
+    $self->fetch_data(
+        {   xml     => $xml,
+            realm   => $$params{ realm },
+            name    => $$params{ guild },
+            country => $$params{ country }
+        }
+    );
 
     $self->members(
-              $self->{ data }{ guildInfo }{ guild }{ members }{ character } );
+        $self->{ data }{ guildInfo }{ guild }{ members }{ character } );
 
+}
+
+sub get_heroic_access {
+    my $self = shift;
+
+    my @heroic_array;
+    foreach my $rep ( keys %{ $self->reputation } ) {
+        foreach my $fac ( keys %{ $self->reputation->{ $rep } } ) {
+            foreach my $city (
+                keys %{ $self->reputation->{ $rep }{ $fac }{ 'faction' } } )
+            {
+                foreach my $r ( keys %{ $HEROIC_REPUTATIONS } ) {
+                    if (   $r eq $city
+                        && $self->reputation->{ $rep }{ $fac }{ 'faction' }
+                        { $city }{ 'reputation' } >= 21000 )
+                    {
+                        push @heroic_array, $$HEROIC_REPUTATIONS{ $r };
+                    }
+                }
+            }
+        }
+    }
+    $self->heroic_access( \@heroic_array );
 }
 
 =head1 BUGS AND LIMITATIONS

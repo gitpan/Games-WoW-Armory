@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 use strict;
-
+use lib ('../lib');
 use Getopt::Simple qw($switch);
 use Games::WoW::Armory;
 
@@ -47,7 +47,6 @@ if ( !$o->getOptions( $options, "Usage : $0 [options]" ) ) {
     exit( -1 );
 }
 
-# die Dumper($switch);
 my $armory = Games::WoW::Armory->new();
 
 if ( !defined $$switch{ 'realm' } ) {
@@ -91,17 +90,13 @@ sub search_character {
         . $armory->character->{ race } . ") "
         . $armory->character->{ level } . "\n";
 
-    print "\tREPUTATION\n";
-    foreach my $rep ( keys %{ $armory->reputation } ) {
-        foreach my $fac ( keys %{ $armory->reputation->{ $rep } } ) {
-            foreach my $city (
-                keys %{ $armory->reputation->{ $rep }{ $fac }{ 'faction' } } )
-            {
-                print $city. "("
-                    . $armory->reputation->{ $rep }{ $fac }{ 'faction' }
-                    { $city }{ 'reputation' } . ") /";
-            }
-            print "\n";
+    if (scalar @{$armory->heroic_access} == 0){
+        print "No heroic access yet.\n";
+    }else{
+        print "\tHeroic Access:\n";
+        foreach my $key (@{$armory->heroic_access}){
+            print "Have access to the $key.\n";
         }
     }
+
 }
