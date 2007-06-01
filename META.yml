@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                Games-WoW-Armory
-version:             0.0.3
+version:             0.0.5
 abstract:            Access to the WoW Armory
 license:             perl
 generated_by:        ExtUtils::MakeMaker version 6.32

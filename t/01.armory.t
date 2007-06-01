@@ -1,7 +1,7 @@
 #!/usr/bin/perl -w
 
 use strict;
-use Test::More tests => 6;
+use Test::More tests => 10;
 use Games::WoW::Armory;
 use Data::Dumper;
 
@@ -13,7 +13,11 @@ can_ok('Games::WoW::Armory', 'search_guild');
 my $char = Games::WoW::Armory->new();
 $char->search_character({realm => "Elune", character => "Aarnn", country => "EU"});
 is ($char->character->{name}, "Aarnn", "Character name ok");
+is ($char->character->name, "Aarnn", "New character name ok");
+is ($char->character->level, 70, "New characterlevel ok");
 
 my $guild = Games::WoW::Armory->new();
 $guild->search_guild({realm => "Elune", guild => "Cercle+De+L+Anneau+Rond", country => "EU"});
-ok ($guild->members->{Aarnn});
+is ($guild->guild->name, "Cercle De L Anneau Rond", "Guild name");
+is ($guild->guild->realm, "Elune", "Realm name");
+is ($guild->guild->battleGroup, "Cataclysme", "Battlegroup name");
