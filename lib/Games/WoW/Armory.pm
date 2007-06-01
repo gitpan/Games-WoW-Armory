@@ -12,7 +12,7 @@ __PACKAGE__->mk_accessors(
     qw(character url team guild)
 );
 
-our $VERSION = '0.0.5';
+our $VERSION = '0.0.6';
 
 =head1 NAME
 
@@ -47,10 +47,15 @@ Search a character. Required params:
 	country : name of the country (EU|US)
 	
 List of accessor for character:
-    
-name: character name 
-guildName: guild name
-arenaTeams: list of teams the character is in. Each team in the array is a Games::WoW::Armory::Team object
+
+=over 4
+
+=item * name: character name 
+
+=item * guildName: guild name
+
+=item * arenaTeams: list of teams the character is in. Each team in the array is a Games::WoW::Armory::Team object
+
 
     foreach my $team (@{$armory->character->arenaTeams}){
         print $team->name;
@@ -58,29 +63,49 @@ arenaTeams: list of teams the character is in. Each team in the array is a Games
             print $char->name . " " . $char->race;
         }
     }
-    
-battleGroup: the battlegroup name 
-realm: realm name 
-race: race name 
-gender: gender of the character 
-faction: faction the character belongs to 
-level: level of the character 
-lastModified: 
-title: highest rank in the old PVP mode 
-class: class name
-rank: rank
-teamRank: rank in the team 
-seasonGamesPlayed: number of games played in the current season 
-seasonGamesWon: number of games win in the current season
-heroic_access: list of heroic access for the character
-    
+
+
+=item * battleGroup: the battlegroup name 
+
+=item * realm: realm name 
+
+=item * race: race name 
+
+=item * gender: gender of the character 
+
+=item * faction: faction the character belongs to 
+
+=item * level: level of the character 
+
+=item * lastModified: 
+
+=item * title: highest rank in the old PVP mode 
+
+=item * class: class name
+
+=item * rank: rank
+
+=item * teamRank: rank in the team 
+
+=item * seasonGamesPlayed: number of games played in the current season 
+
+=item * seasonGamesWon: number of games win in the current season
+
+=item * heroic_access: list of heroic access for the character
+
+
     foreach my $key ( @{ $armory->character->heroic_access } ) {
         print "Have access to the $key.\n";
     }
 
-characterinfo: a hash with lot of informations about the character
-skill:  a hash with all the skill reputation
-reputation: a hash with all the character reputation
+
+=item * characterinfo: a hash with lot of informations about the character
+
+=item * skill:  a hash with all the skill reputation
+
+=item * reputation: a hash with all the character reputation
+
+=back
 
 =head3 search_guild
 
@@ -93,11 +118,18 @@ Search for a guild. required params :
 	
 List of accessor for guild:
 
-realm: name of the realm
-name: name of the guild 
-battleGroup: name of the battleGroup
-members: array with all the member. Each member is a Games::WoW::Armory::Character object.
-    
+=over 4
+
+=item * realm: name of the realm
+
+=item * name: name of the guild 
+
+=item * battleGroup: name of the battleGroup
+
+=item * members: array with all the member. Each member is a Games::WoW::Armory::Character object.
+
+=back
+
     foreach my $member (@{$armory->guild->members}){
         print $member->name;
     }
@@ -114,18 +146,33 @@ Search for a team. required params :
 
 List of accessor for team:
 
-seasonGamesPlayed: number of games played this season
-rating: 
-size: number of members in the team
-battleGroup: name of the battlegroup
-realm: name of the realm
-lastSeasonRanking: ranking in the last season
-factionId: faction ID, 0 for alliance, 1 for Horde
-ranking:
-name: name of the team
-relevance: 
-seasonGamesWon: number of games won
-members: team members in an array, all the members are a Games::WoW::Armory::Character object
+=over 4
+
+=item * seasonGamesPlayed: number of games played this season
+
+=item * rating: 
+
+=item * size: number of members in the team
+
+=item * battleGroup: name of the battlegroup
+
+=item * realm: name of the realm
+
+=item * lastSeasonRanking: ranking in the last season
+
+=item * factionId: faction ID, 0 for alliance, 1 for Horde
+
+=item * ranking:
+
+=item * name: name of the team
+
+=item * relevance: 
+
+=item * seasonGamesWon: number of games won
+
+=item * members: team members in an array, all the members are a Games::WoW::Armory::Character object
+
+=back
 
     foreach my $member (@{$armory->team->members}){
         print $member->name;
