@@ -12,7 +12,7 @@ __PACKAGE__->mk_accessors(
     qw(character url team guild)
 );
 
-our $VERSION = '0.0.6';
+our $VERSION = '0.0.7';
 
 =head1 NAME
 
@@ -107,6 +107,14 @@ List of accessor for character:
 
 =back
 
+=head3 get_arena_teams
+
+Get arena teams for a player
+
+=head3 get_reputation
+
+Get reputation for a player
+
 =head3 search_guild
 
 Search for a guild. required params : 
@@ -184,8 +192,8 @@ Store in $self->character->heroic_access the list of keys the user can buy for t
 
 =cut
 
-our $WOW_EUROPE = "http://armory.wow-europe.com/";
-our $WOW_US     = 'http://armory.worldofwarcraft.com/';
+our $WOW_EUROPE = "http://eu.wowarmory.com/";
+our $WOW_US     = 'http://www.wowarmory.com/';
 
 our $HEROIC_REPUTATIONS = {
     "Keepers of Time"     => "Key of Time",
@@ -214,10 +222,10 @@ sub fetch_data {
         croak "Unknow region code, please choose US or EU";
     }
 
-    if ( defined $$params{ battlegroup } ) {
+    if ( defined $$params{ team } ) {
         $self->url( $base_url
-                . $$params{ xml } . "?b="
-                . $$params{ battlegroup } . "&ts="
+                . $$params{ xml } . "?r="
+                . $$params{ realm } . "&ts="
                 . $$params{ ts } . "&t="
                 . $$params{ team } );
 
@@ -239,7 +247,7 @@ sub fetch_data {
 sub search_character {
     my ( $self, $params ) = @_;
 
-    my $xml = "character-sheet.xml";
+    my $xml = 'character-sheet.xml';
 
     croak "you need to specify a character name"
         unless defined $$params{ character };
@@ -256,17 +264,14 @@ sub search_character {
     );
     
     my $character     = $self->{ data }{ characterInfo }{ character };
-    my $reputation    = $self->{ data }{ characterInfo }{ reputationTab };
     my $skill         = $self->{ data }{ characterInfo }{ skillTab };
     my $characterinfo = $self->{ data }{ characterInfo }{ characterTab };
-    my $arena_team    = $$character{arenaTeams}{arenaTeam};
     
     $self->character( Games::WoW::Armory::Character->new );
     $self->character->name( $$character{ name } );
     $self->character->class( $$character{ class } );
     $self->character->guildName( $$character{ guildName } );
 
-    # $self->arenaTeams
     $self->character->battleGroup( $$character{ battleGroup } );
     $self->character->realm( $$character{ realm } );
     $self->character->race( $$character{ race } );
@@ -276,26 +281,84 @@ sub search_character {
     $self->character->lastModified( $$character{ lastModified } );
     $self->character->title( $$character{ title } );
 
-    $self->character->reputation( $reputation );
     $self->character->skill( $skill );
     $self->character->characterinfo( $characterinfo );
     
-    my @teams;
-    foreach my $team (keys %{$arena_team}){
+    # Reputation information requires a separate XML file.
+    $self->get_reputation( $params );
+
+    $self->get_arena_teams( $params );
+}
+
+sub get_reputation {
+    my ( $self, $params ) = @_;
+
+    my $xml = 'character-reputation.xml';
+
+    croak "you need to specify a character name"
+        unless defined $$params{ character };
+    croak "you need to specify a realm" unless defined $$params{ realm };
+    croak "you need to specify a country name"
+        unless defined $$params{ country };
+
+    $self->fetch_data(
+        {   xml     => $xml,
+            realm   => $$params{ realm },
+            name    => $$params{ character },
+            country => $$params{ country }
+        }
+    );
+
+    my $reputation = $self->{ data }{ characterInfo }{ reputationTab };
+    $self->character->reputation( $reputation );
+    $self->get_heroic_access;
+}
+
+sub get_arena_teams {
+    my ( $self, $params ) = @_;
+
+    my $xml = 'character-arenateams.xml';
+
+    croak "you need to specify a character name"
+        unless defined $$params{ character };
+    croak "you need to specify a realm" unless defined $$params{ realm };
+    croak "you need to specify a country name"
+        unless defined $$params{ country };
+
+    $self->fetch_data(
+        {   xml     => $xml,
+            realm   => $$params{ realm },
+            name    => $$params{ character },
+            country => $$params{ country }
+        }
+    );
+
+    my $arena_team 
+        = $self->{data}{characterInfo}{character}{arenaTeams}{arenaTeam};
+
+    # XML::Simple will not divide team information up into keys
+    # (based on team name) unless the character is a member of more
+    # than one team.  The following logic tries to figure this out:
+    my @teams = ( exists $$arena_team{name} ) 
+              ? ( $arena_team )
+              : map { $$arena_team{$_} } keys %{$arena_team};
+
+    my @team_objs;
+    foreach my $team ( @teams ){
         my $t = Games::WoW::Armory::Team->new;
-        $t->name($team);
-        $t->seasonGamesPlayed($$arena_team{$team}{seasonGamesPlayed});
-        $t->size($$arena_team{$team}{size});
-        $t->rating($$arena_team{$team}{rating});
-        $t->battleGroup($$arena_team{$team}{battleGroup});
-        $t->realm($$arena_team{$team}{realm});
-        $t->lastSeasonRanking($$arena_team{$team}{lastSeasonRanking});
-        $t->factionId($$arena_team{$team}{factionId});
-        $t->ranking($$arena_team{$team}{ranking});
-        $t->seasonGamesWon($$arena_team{$team}{seasonGamesWon});
+        $t->name($$team{name});
+        $t->seasonGamesPlayed($$team{seasonGamesPlayed});
+        $t->size($$team{size});
+        $t->rating($$team{rating});
+        $t->battleGroup($$team{battleGroup});
+        $t->realm($$team{realm});
+        $t->lastSeasonRanking($$team{lastSeasonRanking});
+        $t->factionId($$team{factionId});
+        $t->ranking($$team{ranking});
+        $t->seasonGamesWon($$team{seasonGamesWon});
         my @members;
 
-        my $members = $$arena_team{$team}{members}{character};
+        my $members = $$team{members}{character};
         foreach my $member (keys %{$members}){
             my $m = Games::WoW::Armory::Character->new;
             $m->name($member);
@@ -310,9 +373,9 @@ sub search_character {
             push @members, $m;
         }
         $t->members(\@members);
+        push @team_objs, $t;
     }
-    
-    $self->get_heroic_access();
+    $self->character->arenaTeams( \@team_objs );
 }
 
 sub search_guild {
@@ -364,15 +427,15 @@ sub search_team {
     croak "you need to specify a country name"
         unless defined $$params{ country };
     croak "you need to specify a team style" unless defined $$params{ ts };
-    croak "you need to specify a battlegroup name"
-        unless defined $$params{ battlegroup };
+    croak "you need to specify a realm name"
+        unless defined $$params{ realm };
 
     $self->fetch_data(
-        {   xml         => $xml,
-            team        => $$params{ team },
-            battlegroup => $$params{ battlegroup },
-            ts          => $$params{ ts },
-            country     => $$params{ country }
+        {   xml     => $xml,
+            team    => $$params{ team },
+            realm   => $$params{ realm },
+            ts      => $$params{ ts },
+            country => $$params{ country }
         }
     );
 
@@ -440,7 +503,7 @@ L<http://rt.cpan.org>.
 =head1 AUTHOR
 
 franck cuny  C<< <franck.cuny@gmail.com> >>
-
+Andrew Yochum C<< <andrewyochum@gmail.com> >>
 
 =head1 LICENCE AND COPYRIGHT
 

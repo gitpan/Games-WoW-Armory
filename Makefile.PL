@@ -1,6 +1,8 @@
 use strict;
 use warnings;
 use ExtUtils::MakeMaker;
+eval 'use ExtUtils::MakeMaker::Coverage';
+warn "Optional ExtUtils::MakeMaker::Coverage not available\n" if $@;
 
 WriteMakefile( NAME          => 'Games::WoW::Armory',
                AUTHOR        => 'franck cuny <franck.cuny@gmail.com>',
