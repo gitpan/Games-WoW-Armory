@@ -1,19 +1,27 @@
 --- #YAML:1.0
-name:                Games-WoW-Armory
-version:             0.0.7
-abstract:            Access to the WoW Armory
-license:             perl
-generated_by:        ExtUtils::MakeMaker version 6.36
-distribution_type:   module
-requires:     
-    Class::Accessor::Fast:         0
-    LWP::UserAgent:                0
-    Test::More:                    0
-    Test::Perl::Critic:            0
-    version:                       0
-    XML::Simple:                   0
-meta-spec:
-    url:     http://module-build.sourceforge.net/META-spec-v1.2.html
-    version: 1.2
+name:               Games-WoW-Armory
+version:            0.0.7_1
+abstract:           Access to the WoW Armory
 author:
     - franck cuny <franck.cuny@gmail.com>
+license:            perl
+distribution_type:  module
+configure_requires:
+    ExtUtils::MakeMaker:  0
+build_requires:
+    ExtUtils::MakeMaker:  0
+requires:
+    Class::Accessor::Fast:  0
+    LWP::UserAgent:       0
+    Test::More:           0
+    Test::Perl::Critic:   0
+    version:              0
+    XML::Simple:          0
+no_index:
+    directory:
+        - t
+        - inc
+generated_by:       ExtUtils::MakeMaker version 6.55_02
+meta-spec:
+    url:      http://module-build.sourceforge.net/META-spec-v1.4.html
+    version:  1.4

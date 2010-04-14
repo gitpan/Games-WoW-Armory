@@ -7,6 +7,7 @@ META.yml
 README
 t/00.load.t
 t/01.armory.t
+t/02.arena.t
 t/kwalitee.t
 t/perlcritic.t
 t/pod-coverage.t
